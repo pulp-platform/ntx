@@ -2,7 +2,7 @@
 
 This is NTX, the Network Training Accelerator, an optimized streaming unit capable of performing high efficiency, single-cycle, 32 bit floating point multiply-accumulate operations on large batches of data. It is capable of autonomously fetching operands from an attached memory and storing the results back. Addresses are generated as linear combination of a configurable number of nested hardware loops.
 
-Made with <3 at ETH Zurich. Created by Michael Schaffner and Fabian Schuiki.
+Made with ❤️ at ETH Zurich. Created by Michael Schaffner and Fabian Schuiki.
 
 ## Usage
 
