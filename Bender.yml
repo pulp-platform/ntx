@@ -1,0 +1,31 @@
+package:
+  name: "ntx"
+  version: "1.0.0"
+  authors:
+    - Michael Schaffner <schaffner@iis.ee.ethz.ch>
+    - Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
+
+sources:
+  - src/ntx_tools_pkg.vhd
+  - src/ntx_lzc.vhd
+  - src/ntx_fifo_asic.vhd
+  - src/ntx_fifo_asic_oregs.vhd
+  - src/ntx_fifo_d1.vhd
+  - src/ntx_fifo_d2.vhd
+  - src/ntx_fifo.vhd
+  - src/fp32_pkg.vhd
+  - src/fp32_pcsAdd.vhd
+  - src/fp32_pcsAdd2.vhd
+  - src/fp32_pcsCarryProp.vhd
+  - src/fp32_pcsMult.vhd
+  - src/fp32_norm.vhd
+  - src/fp32_mac.vhd
+  - src/fp32_toPcs.vhd
+  - src/ntx_pkg.vhd
+  - src/ntx_ctrl.vhd
+  - src/ntx_dag.vhd
+  - src/ntx_fifo_fpga.vhd
+  - src/ntx_fpu_alu.vhd
+  - src/ntx_fpu.vhd
+  - src/ntx_regIf.vhd
+  - src/ntx.vhd
