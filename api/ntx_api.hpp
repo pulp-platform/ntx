@@ -15,7 +15,7 @@
 #pragma once
 
 // enable emulation
-// #define NST_EMULATION_ON
+// #define NTX_EMULATION_ON
 
 #include <stdint.h>
 #include <inttypes.h>
@@ -24,8 +24,8 @@
 #include <cassert>
 
 // enables some debug output
-#ifndef NST_DEBUG_LEVEL
-#define NST_DEBUG_LEVEL          0
+#ifndef NTX_DEBUG_LEVEL
+#define NTX_DEBUG_LEVEL          0
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,9 +34,9 @@
 // are doing - these are not adjustable parameters.
 ///////////////////////////////////////////////////////////////////////////////
 
-#define C_NST_BASE_ADDR          0x10204800
-#define C_NST_OFFSET             (32<<2)
-#define C_NST_BROADCAST_ADDR     0x10204C00
+#define C_NTX_BASE_ADDR          0x10204800
+#define C_NTX_OFFSET             (32<<2)
+#define C_NTX_BROADCAST_ADDR     0x10204C00
 
 #define C_N_HW_LOOPS             5
 #define C_HW_LOOP_WIDTH          16
@@ -45,74 +45,74 @@
 #define C_ADDR_WIDTH             32
 #define C_DATA_WIDTH             32
 #define C_BYTE_ENABLE_WIDTH      4
-#define C_NST_FPU_ALU_CNT_WIDTH  16
+#define C_NTX_FPU_ALU_CNT_WIDTH  16
 
-// nst register map, use nstReadReg
+// ntx register map, use nstReadReg
 // note: these are word addresses (gets implicitly
 // shifted <<2 due to pointer access onto uint32_t*)
 #define C_REG_ADDR_WIDTH         7
-#define C_NST_STAT_REG           0x00
-#define C_NST_CTRL_REG           0x01
-#define C_NST_CMD_REG            0x02
-#define C_NST_IRQ_REG            0x03
-#define C_NST_LOOP_REGS          0x04
-#define C_NST_AGU0_REGS          0x09
-#define C_NST_AGU1_REGS          0x0F
-#define C_NST_AGU2_REGS          0x15
+#define C_NTX_STAT_REG           0x00
+#define C_NTX_CTRL_REG           0x01
+#define C_NTX_CMD_REG            0x02
+#define C_NTX_IRQ_REG            0x03
+#define C_NTX_LOOP_REGS          0x04
+#define C_NTX_AGU0_REGS          0x09
+#define C_NTX_AGU1_REGS          0x0F
+#define C_NTX_AGU2_REGS          0x15
 
-#define C_NST_OPCODE_WIDTH       4
-#define C_NST_LOOP_LEVEL_WIDTH   3
-#define C_N_NST_OPCODES          9
-#define C_NST_MAC_OP             0
-#define C_NST_VADDSUB_OP         1
-#define C_NST_VMULT_OP           2
-#define C_NST_OUTERP_OP          3
-#define C_NST_MAXMIN_OP          4
-#define C_NST_THTST_OP           5
-#define C_NST_MASK_OP            6
-#define C_NST_MASKMAC_OP         7
-#define C_NST_COPY_OP            8
+#define C_NTX_OPCODE_WIDTH       4
+#define C_NTX_LOOP_LEVEL_WIDTH   3
+#define C_N_NTX_OPCODES          9
+#define C_NTX_MAC_OP             0
+#define C_NTX_VADDSUB_OP         1
+#define C_NTX_VMULT_OP           2
+#define C_NTX_OUTERP_OP          3
+#define C_NTX_MAXMIN_OP          4
+#define C_NTX_THTST_OP           5
+#define C_NTX_MASK_OP            6
+#define C_NTX_MASKMAC_OP         7
+#define C_NTX_COPY_OP            8
 
-#define C_NST_SET_NO_IRQ         0
-#define C_NST_SET_CMD_IRQ        1
-#define C_NST_SET_WB_IRQ         2
+#define C_NTX_SET_NO_IRQ         0
+#define C_NTX_SET_CMD_IRQ        1
+#define C_NTX_SET_WB_IRQ         2
 
-#define C_NST_POS_POLARITY       0
-#define C_NST_NEG_POLARITY       1
+#define C_NTX_POS_POLARITY       0
+#define C_NTX_NEG_POLARITY       1
 
-#define C_NST_INIT_WITH_AGU0     0
-#define C_NST_INIT_WITH_AGU1     1
-#define C_NST_INIT_WITH_AGU2     2
-#define C_NST_INIT_WITH_ZERO     3
+#define C_NTX_INIT_WITH_AGU0     0
+#define C_NTX_INIT_WITH_AGU1     1
+#define C_NTX_INIT_WITH_AGU2     2
+#define C_NTX_INIT_WITH_ZERO     3
 
-#define C_NST_CTRL_PRIO_HI       (0<<1)
-#define C_NST_CTRL_PRIO_RR       (1<<1)
-#define C_NST_CTRL_PRIO_71       (2<<1)
+#define C_NTX_CTRL_PRIO_HI       (0<<1)
+#define C_NTX_CTRL_PRIO_RR       (1<<1)
+#define C_NTX_CTRL_PRIO_71       (2<<1)
 
 // aux field values
-// for C_NST_MAC_OP, C_NST_VADDSUB_OP, C_NST_VMULT_OP, C_NST_OUTERP_OP
-#define C_NST_MAC_AUX_STD        0
-#define C_NST_MAC_AUX_RELU       1
+// for C_NTX_MAC_OP, C_NTX_VADDSUB_OP, C_NTX_VMULT_OP, C_NTX_OUTERP_OP
+#define C_NTX_MAC_AUX_STD        0
+#define C_NTX_MAC_AUX_RELU       1
 
-// for C_NST_MAXMIN_OP
-#define C_NST_MAXMIN_AUX_STD     0
-#define C_NST_MAXMIN_AUX_ARG     1
+// for C_NTX_MAXMIN_OP
+#define C_NTX_MAXMIN_AUX_STD     0
+#define C_NTX_MAXMIN_AUX_ARG     1
 
-// for C_NST_THTST_OP
-#define C_NST_THTST_AUX_CMP_EQ   0
-#define C_NST_THTST_AUX_CMP_LT   1
-#define C_NST_THTST_AUX_CMP_LE   2
-#define C_NST_THTST_AUX_BIN_OUT  4 // can be or'ed with other CMP modes above
+// for C_NTX_THTST_OP
+#define C_NTX_THTST_AUX_CMP_EQ   0
+#define C_NTX_THTST_AUX_CMP_LT   1
+#define C_NTX_THTST_AUX_CMP_LE   2
+#define C_NTX_THTST_AUX_BIN_OUT  4 // can be or'ed with other CMP modes above
 
 // for MASK, MASKMAC
-#define C_NST_MASK_AUX_CMP_EQ    0
-#define C_NST_MASK_AUX_CMP_LT    1
-#define C_NST_MASK_AUX_CMP_LE    2 // can be or'ed with other CMP modes above
-#define C_NST_MASK_AUX_CMP_CNT   4
+#define C_NTX_MASK_AUX_CMP_EQ    0
+#define C_NTX_MASK_AUX_CMP_LT    1
+#define C_NTX_MASK_AUX_CMP_LE    2 // can be or'ed with other CMP modes above
+#define C_NTX_MASK_AUX_CMP_CNT   4
 
 // for copy OP
-#define C_NST_COPY_AUX_REPL      0 // uses init load to load a constant or zero to deposit
-#define C_NST_COPY_AUX_VECT      1 // copy a vector without using the init cycle
+#define C_NTX_COPY_AUX_REPL      0 // uses init load to load a constant or zero to deposit
+#define C_NTX_COPY_AUX_VECT      1 // copy a vector without using the init cycle
 
 ///////////////////////////////////////////////////////////////////////////////
 // internal helper datatypes (uses arr1D and arr2D from fp32_mac.h)
@@ -124,20 +124,20 @@ typedef arr1D<uint32_t, C_N_HW_LOOPS>          nst_loopType;
 typedef arr2D<int32_t, C_N_HW_LOOPS, C_N_AGUS> nst_strideType;
 
 ///////////////////////////////////////////////////////////////////////////////
-// NST job type
+// NTX job type
 ///////////////////////////////////////////////////////////////////////////////
 
 
-class nstV2Api {
+class ntx_api {
 public:
 
-    // NST address (ignored in emulation, but needed in real app)
+    // NTX address (ignored in emulation, but needed in real app)
     volatile aguPtrType nstAddr = nullptr;
 
     uint32_t prepNstCmd = 0;
     uint32_t loopLevels = 0;
 
-#ifdef NST_EMULATION_ON
+#ifdef NTX_EMULATION_ON
     // for sanity checks only
     aguPtrType tcdmLow  = nullptr;
     aguPtrType tcdmHigh = nullptr;
@@ -160,7 +160,7 @@ public:
     nst_aguType    aguOff;
     nst_strideType aguStride;
 
-    // nst state
+    // ntx state
     nst_aguType    agu;
     fp32_accuType  accuState;
     uint32_t       aluState = 0;
@@ -170,25 +170,25 @@ public:
 
     // broadcast
     // bool broadcast = false;
-    // std::vector<nstV2Api*> otherNsts;
-    nstV2Api *broadcast = nullptr;
-    nstV2Api *broadcastEnd = nullptr;
+    // std::vector<ntx_api*> otherNsts;
+    ntx_api *broadcast = nullptr;
+    ntx_api *broadcastEnd = nullptr;
 
 
 
-    /// Construct an empty NST.
-    nstV2Api() {
+    /// Construct an empty NTX.
+    ntx_api() {
     }
 
-    /// Construct an NST.
-    nstV2Api(uint32_t nstAddr_):
+    /// Construct an NTX.
+    ntx_api(uint32_t nstAddr_):
         nstAddr((void*)(size_t)nstAddr_) {
     }
 
-    /// Construct a broadcast alias for other NSTs.
-    nstV2Api(uint32_t nstAddr_, nstV2Api *broadcast, nstV2Api *broadcastEnd):
-        nstV2Api(nstAddr_) {
-        // #ifdef NST_EMULATION_ON
+    /// Construct a broadcast alias for other NTXs.
+    ntx_api(uint32_t nstAddr_, ntx_api *broadcast, ntx_api *broadcastEnd):
+        ntx_api(nstAddr_) {
+        // #ifdef NTX_EMULATION_ON
         this->broadcast = broadcast;
         this->broadcastEnd = broadcastEnd;
         // #endif
@@ -199,104 +199,104 @@ public:
         nstAddr = (void*)(size_t)nstAddr_;
     }
 
-// functions for NST/CORE interaction on PULP
-#ifndef NST_EMULATION_ON
+// functions for NTX/CORE interaction on PULP
+#ifndef NTX_EMULATION_ON
 
-    // read NST regs
+    // read NTX regs
     inline uint32_t
     readReg(const uint32_t regOffset) {
         return * ((volatile uint32_t*)nstAddr+regOffset);
     }
 
-    // write NST regs
+    // write NTX regs
     inline void
     writeReg(const uint32_t regOffset, const uint32_t value) {
         *((volatile uint32_t*)nstAddr+regOffset) = value;
     }
 
-    // checks whether the NST is idle, and has empty pipeline, and whether no error occurred
+    // checks whether the NTX is idle, and has empty pipeline, and whether no error occurred
     inline bool
     isIdle() {
-        return (this->readReg(C_NST_STAT_REG) & 0x1F) == 0x7;
+        return (this->readReg(C_NTX_STAT_REG) & 0x1F) == 0x7;
     }
 
-    // checks whether the NST can accept another command
+    // checks whether the NTX can accept another command
     inline bool
     isReady() {
-        return ! (bool)(this->readReg(C_NST_STAT_REG) & 0x10);
+        return ! (bool)(this->readReg(C_NTX_STAT_REG) & 0x10);
     }
 
-    // checks whether the NST has halted due to an invalid command
+    // checks whether the NTX has halted due to an invalid command
     // you have to issue a soft reset to unblock it again
     inline void
     softRst() {
-        this->writeReg(C_NST_CTRL_REG, 0x01);
+        this->writeReg(C_NTX_CTRL_REG, 0x01);
     }
 
-    // set the TCDM priority of the NST
+    // set the TCDM priority of the NTX
     inline void
     setTcdmPrio(uint32_t val) {
-        this->writeReg(C_NST_CTRL_REG, val & 0x6);
+        this->writeReg(C_NTX_CTRL_REG, val & 0x6);
     }
 
-    // get the TCDM priority of the NST
+    // get the TCDM priority of the NTX
     inline uint32_t
     getTcdmPrio() {
-        return (this->readReg(C_NST_CTRL_REG)) & 0x02;
+        return (this->readReg(C_NTX_CTRL_REG)) & 0x02;
     }
 
     // check if there is a pending interrupt
     inline bool
     hasIrq() {
-        return this->readReg(C_NST_IRQ_REG);
+        return this->readReg(C_NTX_IRQ_REG);
     }
 
     // clears all pending IRQs
     inline void
     clrIrq() {
-        this->writeReg(C_NST_IRQ_REG, 0xFFFFFFFF);
+        this->writeReg(C_NTX_IRQ_REG, 0xFFFFFFFF);
     }
 
 #else
 
-    // read NST regs
+    // read NTX regs
     inline uint32_t
     readReg(const uint32_t regOffset) {
         assert(!broadcast);
         return 0;
     }
 
-    // write NST regs
+    // write NTX regs
     inline void
     writeReg(const uint32_t regOffset, const uint32_t value) {
     }
 
-    // checks whether the NST is idle, and has empty pipeline, and whether no error occurred
+    // checks whether the NTX is idle, and has empty pipeline, and whether no error occurred
     inline bool
     isIdle() {
         assert(!broadcast);
         return true;
     }
 
-    // checks whether the NST can accept another command
+    // checks whether the NTX can accept another command
     inline bool
     isReady() {
         assert(!broadcast);
         return true;
     }
 
-    // checks whether the NST has halted due to an invalid command
+    // checks whether the NTX has halted due to an invalid command
     // you have to issue a soft reset to unblock it again
     inline void
     softRst() {
     }
 
-    // set the TCDM priority of the NST
+    // set the TCDM priority of the NTX
     inline void
     setTcdmPrio(uint32_t val) {
     }
 
-    // get the TCDM priority of the NST
+    // get the TCDM priority of the NTX
     inline uint32_t
     getTcdmPrio() {
         assert(!broadcast);
@@ -314,8 +314,8 @@ public:
     inline void
     clrIrq() {
         if (broadcast) {
-            for (auto nst = broadcast; nst != broadcastEnd; ++nst)
-                nst->clrIrq();
+            for (auto ntx = broadcast; ntx != broadcastEnd; ++ntx)
+                ntx->clrIrq();
             return;
         }
         irqReg = false;
@@ -345,10 +345,10 @@ public:
         const nst_loopType   & loopBound_,
         const nst_strideType & aguStride_
     ) {
-        #ifdef NST_EMULATION_ON
+        #ifdef NTX_EMULATION_ON
         if (broadcast) {
-            for (auto nst = broadcast; nst != broadcastEnd; ++nst)
-                nst->stageLoopNest(
+            for (auto ntx = broadcast; ntx != broadcastEnd; ++ntx)
+                ntx->stageLoopNest(
                     initLevel_,
                     innerLevel_,
                     outerLevel_,
@@ -370,22 +370,22 @@ public:
         #endif
 
         // prepare for command word
-        loopLevels  = (outerLevel_  & 0x7) << (2*C_NST_LOOP_LEVEL_WIDTH + C_NST_OPCODE_WIDTH);
-        loopLevels |= (innerLevel_  & 0x7) << (C_NST_LOOP_LEVEL_WIDTH   + C_NST_OPCODE_WIDTH);
-        loopLevels |= (initLevel_   & 0x7) <<  C_NST_OPCODE_WIDTH;
+        loopLevels  = (outerLevel_  & 0x7) << (2*C_NTX_LOOP_LEVEL_WIDTH + C_NTX_OPCODE_WIDTH);
+        loopLevels |= (innerLevel_  & 0x7) << (C_NTX_LOOP_LEVEL_WIDTH   + C_NTX_OPCODE_WIDTH);
+        loopLevels |= (initLevel_   & 0x7) <<  C_NTX_OPCODE_WIDTH;
 
         if (broadcast) {
-            for (auto nst = broadcast; nst != broadcastEnd; ++nst)
-                nst->loopLevels = loopLevels;
+            for (auto ntx = broadcast; ntx != broadcastEnd; ++ntx)
+                ntx->loopLevels = loopLevels;
         }
 
         for(uint32_t k=0; k< outerLevel_; k++) {
-#ifdef NST_EMULATION_ON
+#ifdef NTX_EMULATION_ON
             assert(loopBound_[k] < (1ULL << C_HW_LOOP_WIDTH));
             assert(loopBound_[k] > 0);
             loopBound[k] = loopBound_[k]-1;
 #else
-            this->writeReg(C_NST_LOOP_REGS+k, loopBound_[k]-1);
+            this->writeReg(C_NTX_LOOP_REGS+k, loopBound_[k]-1);
 #endif
         }
 
@@ -394,10 +394,10 @@ public:
             // convert to word adresses...
             tmp1  = (aguStride_[0][s] - tmp2) << 2;
             tmp2 += (loopBound_[s] - 1) * aguStride_[0][s];
-#ifdef NST_EMULATION_ON
+#ifdef NTX_EMULATION_ON
             aguStride[0][s] = tmp1;
 #else
-            this->writeReg(C_NST_AGU0_REGS+1+s, tmp1);
+            this->writeReg(C_NTX_AGU0_REGS+1+s, tmp1);
 #endif
         }
 
@@ -406,10 +406,10 @@ public:
             // convert to word adresses...
             tmp1  = (aguStride_[1][s] - tmp2) << 2;
             tmp2 += (loopBound_[s] - 1) * aguStride_[1][s];
-#ifdef NST_EMULATION_ON
+#ifdef NTX_EMULATION_ON
             aguStride[1][s] = tmp1;
 #else
-            this->writeReg(C_NST_AGU1_REGS+1+s, tmp1);
+            this->writeReg(C_NTX_AGU1_REGS+1+s, tmp1);
 #endif
         }
 
@@ -418,10 +418,10 @@ public:
             // convert to word adresses...
             tmp1  = (aguStride_[2][s] - tmp2) << 2;
             tmp2 += (loopBound_[s] - 1) * aguStride_[2][s];
-#ifdef NST_EMULATION_ON
+#ifdef NTX_EMULATION_ON
             aguStride[2][s] = tmp1;
 #else
-            this->writeReg(C_NST_AGU2_REGS+1+s, tmp1);
+            this->writeReg(C_NTX_AGU2_REGS+1+s, tmp1);
 #endif
         }
 
@@ -434,10 +434,10 @@ public:
         volatile void * aguOff1_,
         volatile void * aguOff2_
     ) {
-        #ifdef NST_EMULATION_ON
+        #ifdef NTX_EMULATION_ON
         if (broadcast) {
-            for (auto nst = broadcast; nst != broadcastEnd; ++nst)
-                nst->stageAguOffs(
+            for (auto ntx = broadcast; ntx != broadcastEnd; ++ntx)
+                ntx->stageAguOffs(
                     aguOff0_,
                     aguOff1_,
                     aguOff2_
@@ -449,25 +449,25 @@ public:
         aguOff[1] = (void*)aguOff1_;
         aguOff[2] = (void*)aguOff2_;
         #else
-        this->writeReg(C_NST_AGU0_REGS , (uint32_t)(size_t)aguOff0_);
-        this->writeReg(C_NST_AGU1_REGS , (uint32_t)(size_t)aguOff1_);
-        this->writeReg(C_NST_AGU2_REGS , (uint32_t)(size_t)aguOff2_);
+        this->writeReg(C_NTX_AGU0_REGS , (uint32_t)(size_t)aguOff0_);
+        this->writeReg(C_NTX_AGU1_REGS , (uint32_t)(size_t)aguOff1_);
+        this->writeReg(C_NTX_AGU2_REGS , (uint32_t)(size_t)aguOff2_);
         #endif
     }
 
     template <uint32_t idx> inline void
     stageAguOff(volatile void * aguOff_) {
-        #ifdef NST_EMULATION_ON
+        #ifdef NTX_EMULATION_ON
         if (broadcast) {
-            for (auto nst = broadcast; nst != broadcastEnd; ++nst)
-                nst->stageAguOff<idx>(aguOff_);
+            for (auto ntx = broadcast; ntx != broadcastEnd; ++ntx)
+                ntx->stageAguOff<idx>(aguOff_);
             return;
         }
 
         aguOff[idx] = (void*)aguOff_;
         #else
         static const uint32_t addrs[] = {
-            C_NST_AGU0_REGS, C_NST_AGU1_REGS, C_NST_AGU2_REGS
+            C_NTX_AGU0_REGS, C_NTX_AGU1_REGS, C_NTX_AGU2_REGS
         };
         this->writeReg(addrs[idx] , (uint32_t)aguOff_);
         #endif
@@ -476,7 +476,7 @@ public:
 
 
     /// prepares the command word locally
-    /// use issueCmd to write it to the NST and trigger its execution
+    /// use issueCmd to write it to the NTX and trigger its execution
     inline void
     stageCmd(
         const uint8_t opCode_,
@@ -485,10 +485,10 @@ public:
         const uint8_t irqCfg_,
         const bool    polarity_
     ) {
-        #ifdef NST_EMULATION_ON
+        #ifdef NTX_EMULATION_ON
         if (broadcast) {
-            for (auto nst = broadcast; nst != broadcastEnd; ++nst)
-                nst->stageCmd(
+            for (auto ntx = broadcast; ntx != broadcastEnd; ++ntx)
+                ntx->stageCmd(
                     opCode_,
                     initSel_,
                     auxFunc_,
@@ -512,33 +512,33 @@ public:
         prepNstCmd |= auxFunc_ & 0x7;
         prepNstCmd <<= 2;
         prepNstCmd |= initSel_ & 0x3;
-        prepNstCmd <<= (3*C_NST_LOOP_LEVEL_WIDTH + C_NST_OPCODE_WIDTH);
+        prepNstCmd <<= (3*C_NTX_LOOP_LEVEL_WIDTH + C_NTX_OPCODE_WIDTH);
         prepNstCmd |= opCode_ | loopLevels;
 
         if (broadcast) {
-            for (auto nst = broadcast; nst != broadcastEnd; ++nst)
-                nst->prepNstCmd = prepNstCmd;
+            for (auto ntx = broadcast; ntx != broadcastEnd; ++ntx)
+                ntx->prepNstCmd = prepNstCmd;
         }
     }
 
 
     inline void
     issueCmd() {
-        #ifdef NST_EMULATION_ON
+        #ifdef NTX_EMULATION_ON
         if (broadcast) {
-            for (auto nst = broadcast; nst != broadcastEnd; ++nst)
-                nst->issueCmd();
+            for (auto ntx = broadcast; ntx != broadcastEnd; ++ntx)
+                ntx->issueCmd();
             return;
         }
         nstFuncModel();
         irqReg = irqCfg > 0;
         #else
-        this->writeReg(C_NST_CMD_REG, prepNstCmd);
+        this->writeReg(C_NTX_CMD_REG, prepNstCmd);
         #endif
     }
 
     // helper functions for emulation
-    #ifdef NST_EMULATION_ON
+    #ifdef NTX_EMULATION_ON
 
     void
     setTcdmBaseCheck(
@@ -558,7 +558,7 @@ public:
         const aguPtrType tcdm
     );
 
-    // functional model of the NST
+    // functional model of the NTX
     void nstFuncModel();
 
     #endif

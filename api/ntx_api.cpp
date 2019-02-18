@@ -21,13 +21,13 @@
 #include <cassert>
 #include <functional>
 
-#define NST_EMULATION_ON
+#define NTX_EMULATION_ON
 
-#include "nstV2Api.hpp"
+#include "ntx_api.hpp"
 #include "fp32_mac.hpp"
 
 
-#ifdef NST_EMULATION_ON
+#ifdef NTX_EMULATION_ON
 
 ///////////////////////////////////////////////////////////////////////////////
 // definition of internal emulation functions
@@ -36,10 +36,10 @@
 
 class nstInternalOp {
     public:
-    nstV2Api * nst;
+    ntx_api * ntx;
 
-    nstInternalOp(nstV2Api * nst_){
-        nst = nst_;
+    nstInternalOp(ntx_api * nst_){
+        ntx = nst_;
     }
 
     virtual void init() = 0;
@@ -118,11 +118,11 @@ struct nstCopyOp : nstInternalOp{
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// nst emulation functions
+// ntx emulation functions
 ///////////////////////////////////////////////////////////////////////////////
 
 void
-nstV2Api::writeJobDump(const char *      fileName,
+ntx_api::writeJobDump(const char *      fileName,
                        const char *      testName,
                        const aguPtrType  tcdmBase) {
 
@@ -166,7 +166,7 @@ nstV2Api::writeJobDump(const char *      fileName,
 
 
 void
-nstV2Api::nstFuncModel ()
+ntx_api::nstFuncModel ()
 {
 
     // some sanity checks...
@@ -174,7 +174,7 @@ nstV2Api::nstFuncModel ()
     assert(outerLevel >= innerLevel);
     assert(outerLevel >= initLevel);
     assert(C_N_HW_LOOPS   >= outerLevel);
-    assert(C_N_NST_OPCODES > opCode);
+    assert(C_N_NTX_OPCODES > opCode);
     for(uint32_t k=0; k< C_N_HW_LOOPS; k++)
         assert(loopBound[k] < (1ULL << C_HW_LOOP_WIDTH));
 
@@ -184,38 +184,38 @@ nstV2Api::nstFuncModel ()
     //select corresponding fpu Operation
     nstInternalOp * op;
     switch (opCode) {
-        case C_NST_MAC_OP:
+        case C_NTX_MAC_OP:
             op = new nstMacOp(this);
             break;
-        case C_NST_VADDSUB_OP:
+        case C_NTX_VADDSUB_OP:
             op = new nstVAddSubOp(this);
             break;
-        case C_NST_VMULT_OP:
+        case C_NTX_VMULT_OP:
             op = new nstVMultOp(this);
             break;
-        case C_NST_OUTERP_OP:
+        case C_NTX_OUTERP_OP:
             op = new nstOuterPOp(this);
             break;
-        case C_NST_MAXMIN_OP:
+        case C_NTX_MAXMIN_OP:
             op = new nstMaxMinOp(this);
             break;
-        case C_NST_THTST_OP:
+        case C_NTX_THTST_OP:
             op = new nstThTstOp(this);
             break;
-        case C_NST_MASK_OP:
+        case C_NTX_MASK_OP:
             op = new nstMaskOp(this);
             break;
-        case C_NST_MASKMAC_OP:
+        case C_NTX_MASKMAC_OP:
             op = new nstMaskMacOp(this);
             break;
-        case C_NST_COPY_OP:
+        case C_NTX_COPY_OP:
             op = new nstCopyOp(this);
             break;
         default:
             assert(0);
     }
 
-    // define resursive function for NST loops...
+    // define resursive function for NTX loops...
     std::function<void(uint32_t, nstInternalOp&, bool)> nstLooper;
     nstLooper = [this, &nstLooper](uint32_t level, nstInternalOp & op, bool isLast) {
 
@@ -226,7 +226,7 @@ nstV2Api::nstFuncModel ()
         assert(agu[2] >= tcdmLow && agu[2] <= tcdmHigh);
     }
 
-#if NST_DEBUG_LEVEL > 0
+#if NTX_DEBUG_LEVEL > 0
     for(uint32_t k=level; k<outerLevel;k++)
         printf("---");
 
@@ -252,7 +252,7 @@ nstV2Api::nstFuncModel ()
 
     // AGU update
     if((level<C_N_HW_LOOPS) && !isLast) {
- #if NST_DEBUG_LEVEL > 0
+ #if NTX_DEBUG_LEVEL > 0
             printf("level %d AGU update (isLast = %d)\n", level, (int)isLast);
  #endif
         for(uint32_t o=0; o < C_N_AGUS; o++) {
@@ -270,34 +270,34 @@ nstV2Api::nstFuncModel ()
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// NST_MAC
+// NTX_MAC
 ///////////////////////////////////////////////////////////////////////////////
 
 void
 nstMacOp::init() {
 
-    if(nst->initSel >= 3) {
-        nst->accuState.clear();
-#if NST_DEBUG_LEVEL > 1
-        printf("NST_MAC: init accu with zero\n");
+    if(ntx->initSel >= 3) {
+        ntx->accuState.clear();
+#if NTX_DEBUG_LEVEL > 1
+        printf("NTX_MAC: init accu with zero\n");
 #endif
     }
     else {
-        uint32_t * res = (uint32_t *)nst->agu[nst->initSel];
+        uint32_t * res = (uint32_t *)ntx->agu[ntx->initSel];
         pcsMac ((*res),
                 C_FP32_ONE_VAL,
                 1,
                 0,
                 0,
-                nst->accuState,
+                ntx->accuState,
                 (*res));
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
         printf("init accu with res = %f (0x%08X)\n",fp32ToFloat(*res), *res);
 #endif
     }
 
-#if NST_DEBUG_LEVEL > 1
-            printf("op: NST_MAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+#if NTX_DEBUG_LEVEL > 1
+            printf("op: NTX_MAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
@@ -306,21 +306,21 @@ void
 nstMacOp::execute() {
 
     uint32_t res;
-    uint32_t * opA = (uint32_t *)nst->agu[0];
-    uint32_t * opB = (uint32_t *)nst->agu[1];
+    uint32_t * opA = (uint32_t *)ntx->agu[0];
+    uint32_t * opB = (uint32_t *)ntx->agu[1];
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("fetching: opA = %f (0x%08X), opB = %f (0x%08X)\n",fp32ToFloat(*opA), *opA, fp32ToFloat(*opB), *opB);
-    printf("op: NST_MAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_MAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
     // call the bittrue model
     pcsMac ((*opA),
             (*opB),
             0,
-            nst->polarity,
+            ntx->polarity,
             0,
-            nst->accuState,
+            ntx->accuState,
             res);
 
 }
@@ -328,7 +328,7 @@ nstMacOp::execute() {
 void
 nstMacOp::store() {
 
-    uint32_t * res = (uint32_t *)nst->agu[2];
+    uint32_t * res = (uint32_t *)ntx->agu[2];
 
     // call the bittrue model
     pcsMac (C_FP32_ZERO_VAL,
@@ -336,17 +336,17 @@ nstMacOp::store() {
             0,
             0,
             1,
-            nst->accuState,
+            ntx->accuState,
             (*res));
 
     // apply ReLu if required
-    if(nst->auxFunc && fp32_getSign((*res))) {
+    if(ntx->auxFunc && fp32_getSign((*res))) {
         (*res) = C_FP32_ZERO_VAL;
     }
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("storing: res = %f (0x%08X)\n",fp32ToFloat(*res), *res);
-    printf("op: NST_MAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_MAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
@@ -357,28 +357,28 @@ nstMacOp::store() {
 
 void
 nstVAddSubOp::init() {
-    if(nst->initSel >= 3) {
-        nst->accuState.clear();
-#if NST_DEBUG_LEVEL > 1
-        printf("NST_ADDSUB: init accu with zero\n");
+    if(ntx->initSel >= 3) {
+        ntx->accuState.clear();
+#if NTX_DEBUG_LEVEL > 1
+        printf("NTX_ADDSUB: init accu with zero\n");
 #endif
     }
     else {
-        uint32_t * res = (uint32_t *)nst->agu[nst->initSel];
+        uint32_t * res = (uint32_t *)ntx->agu[ntx->initSel];
         pcsMac ((*res),
                 C_FP32_ONE_VAL,
                 1,
-                nst->polarity,
+                ntx->polarity,
                 0,
-                nst->accuState,
+                ntx->accuState,
                 (*res));
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
         printf("init accu with res = %f (0x%08X)\n",fp32ToFloat(*res), *res);
 #endif
     }
 
-#if NST_DEBUG_LEVEL > 1
-            printf("op: NST_ADDSUB (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+#if NTX_DEBUG_LEVEL > 1
+            printf("op: NTX_ADDSUB (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
@@ -386,11 +386,11 @@ nstVAddSubOp::init() {
 void
 nstVAddSubOp::execute() {
     uint32_t res;
-    uint32_t * opA = (uint32_t *)nst->agu[0];
+    uint32_t * opA = (uint32_t *)ntx->agu[0];
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("fetching: opA = %f\n",fp32ToFloat(*opA));
-    printf("op: NST_VADDSUB (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_VADDSUB (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
     // call the bittrue model
@@ -399,14 +399,14 @@ nstVAddSubOp::execute() {
             0,
             0,
             0,
-            nst->accuState,
+            ntx->accuState,
             res);
 }
 
 void
 nstVAddSubOp::store() {
 
-    uint32_t * res = (uint32_t *)nst->agu[2];
+    uint32_t * res = (uint32_t *)ntx->agu[2];
 
     // call the bittrue model
     pcsMac (C_FP32_ZERO_VAL,
@@ -414,17 +414,17 @@ nstVAddSubOp::store() {
             0,
             0,
             1,
-            nst->accuState,
+            ntx->accuState,
             (*res));
 
     // apply ReLu if required
-    if(nst->auxFunc && fp32_getSign((*res))) {
+    if(ntx->auxFunc && fp32_getSign((*res))) {
         (*res) = C_FP32_ZERO_VAL;
     }
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("storing: res = %f (0x%08X)\n",fp32ToFloat(*res), *res);
-    printf("op: NST_VADDSUB (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_VADDSUB (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
@@ -432,9 +432,9 @@ nstVAddSubOp::store() {
 
 void
 nstVMultOp::init() {
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("no init\n");
-    printf("op: NST_VMULT (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_VMULT (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 }
 
@@ -442,28 +442,28 @@ void
 nstVMultOp::execute() {
 
     uint32_t res;
-    uint32_t * opA = (uint32_t *)nst->agu[0];
-    uint32_t * opB = (uint32_t *)nst->agu[1];
+    uint32_t * opA = (uint32_t *)ntx->agu[0];
+    uint32_t * opB = (uint32_t *)ntx->agu[1];
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("fetching: opA = %f, opB = %f\n",fp32ToFloat(*opA),fp32ToFloat(*opB));
-    printf("op: NST_VMULT (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_VMULT (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
     // call the bittrue model
     pcsMac ((*opA),
             (*opB),
             1,
-            nst->polarity,
+            ntx->polarity,
             0,
-            nst->accuState,
+            ntx->accuState,
             res);
 }
 
 void
 nstVMultOp::store() {
 
-    uint32_t * res = (uint32_t *)nst->agu[2];
+    uint32_t * res = (uint32_t *)ntx->agu[2];
 
     // call the bittrue model
     pcsMac (C_FP32_ZERO_VAL,
@@ -471,17 +471,17 @@ nstVMultOp::store() {
             0,
             0,
             1,
-            nst->accuState,
+            ntx->accuState,
             (*res));
 
     // apply ReLu if required
-    if(nst->auxFunc && fp32_getSign((*res))) {
+    if(ntx->auxFunc && fp32_getSign((*res))) {
         (*res) = C_FP32_ZERO_VAL;
     }
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("storing: res = %f (0x%08X)\n",fp32ToFloat(*res), *res);
-    printf("op: NST_VMULT (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_VMULT (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
@@ -493,19 +493,19 @@ nstVMultOp::store() {
 
 void
 nstOuterPOp::init() {
-    if(nst->initSel >= 3) {
-        nst->aluState = C_FP32_ZERO_VAL;
+    if(ntx->initSel >= 3) {
+        ntx->aluState = C_FP32_ZERO_VAL;
     }
     else {
-        nst->aluState = *(uint32_t *)nst->agu[nst->initSel];
+        ntx->aluState = *(uint32_t *)ntx->agu[ntx->initSel];
     }
 
     // clear accu
-    nst->accuState.clear();
+    ntx->accuState.clear();
 
-#if NST_DEBUG_LEVEL > 1
-    printf("init accu with %f (0x%08X)\n",fp32ToFloat(nst->aluState), nst->aluState);
-    printf("op: NST_OUTERP (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+#if NTX_DEBUG_LEVEL > 1
+    printf("init accu with %f (0x%08X)\n",fp32ToFloat(ntx->aluState), ntx->aluState);
+    printf("op: NTX_OUTERP (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
@@ -513,28 +513,28 @@ nstOuterPOp::init() {
 void
 nstOuterPOp::execute() {
 
-    uint32_t * opA = (uint32_t *)nst->agu[0];
+    uint32_t * opA = (uint32_t *)ntx->agu[0];
     uint32_t res;
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("fetching: opA = %f (0x%08X)\n",fp32ToFloat(*opA), *opA);
-    printf("op: NST_OUTERP (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_OUTERP (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
     // call the bittrue model
     pcsMac ((*opA),
-            nst->aluState,
+            ntx->aluState,
             1,
-            nst->polarity,
+            ntx->polarity,
             0,
-            nst->accuState,
+            ntx->accuState,
             res);
 }
 
 void
 nstOuterPOp::store() {
 
-    uint32_t * res = (uint32_t *)nst->agu[2];
+    uint32_t * res = (uint32_t *)ntx->agu[2];
 
     // call the bittrue model
     pcsMac (C_FP32_ZERO_VAL,
@@ -542,17 +542,17 @@ nstOuterPOp::store() {
             0,
             0,
             1,
-            nst->accuState,
+            ntx->accuState,
             (*res));
 
     // apply ReLu if required
-    if(nst->auxFunc && fp32_getSign((*res))) {
+    if(ntx->auxFunc && fp32_getSign((*res))) {
         (*res) = C_FP32_ZERO_VAL;
     }
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("storing: res = %f (0x%08X)\n",fp32ToFloat(*res), *res);
-    printf("op: NST_OUTERP (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_OUTERP (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
@@ -563,55 +563,55 @@ nstOuterPOp::store() {
 
 void
 nstMaxMinOp::init() {
-    if(nst->initSel >= 3) {
-        nst->aluState = C_FP32_ZERO_VAL;
+    if(ntx->initSel >= 3) {
+        ntx->aluState = C_FP32_ZERO_VAL;
     }
     else {
-        nst->aluState = *(uint32_t *)nst->agu[nst->initSel];
+        ntx->aluState = *(uint32_t *)ntx->agu[ntx->initSel];
     }
 
-    nst->cntState = 0;
+    ntx->cntState = 0;
 
-#if NST_DEBUG_LEVEL > 1
-    printf("init accu with %f (0x%08X)\n",fp32ToFloat(nst->aluState), nst->aluState);
-    printf("op: NST_MAXMIN (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+#if NTX_DEBUG_LEVEL > 1
+    printf("init accu with %f (0x%08X)\n",fp32ToFloat(ntx->aluState), ntx->aluState);
+    printf("op: NTX_MAXMIN (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
 
 void
 nstMaxMinOp::execute() {
-    uint32_t * opB = (uint32_t *)nst->agu[1];
+    uint32_t * opB = (uint32_t *)ntx->agu[1];
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("fetching: opB = %f (0x%08X)\n",fp32ToFloat(*opB), *opB);
-    printf("op: NST_MAXMIN (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_MAXMIN (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
     // negative polarity means MIN
-    bool tst = (fp32ToFloat(nst->aluState) > fp32ToFloat(*opB)) ^ !nst->polarity;
+    bool tst = (fp32ToFloat(ntx->aluState) > fp32ToFloat(*opB)) ^ !ntx->polarity;
 
     if(tst) {
-        nst->aluState = *opB;
-        nst->idxState  = nst->cntState;
+        ntx->aluState = *opB;
+        ntx->idxState  = ntx->cntState;
     }
 
-    nst->cntState++;
+    ntx->cntState++;
 }
 
 void
 nstMaxMinOp::store() {
-    uint32_t * res = (uint32_t *)nst->agu[2];
+    uint32_t * res = (uint32_t *)ntx->agu[2];
 
-    if(nst->auxFunc) {
-        *res = nst->idxState;
+    if(ntx->auxFunc) {
+        *res = ntx->idxState;
     }
     else {
-        *res = nst->aluState;
+        *res = ntx->aluState;
     }
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("storing: res = %f (0x%08X)\n",fp32ToFloat(*res), *res);
-    printf("op: NST_MAXMIN (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_MAXMIN (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
@@ -623,16 +623,16 @@ nstMaxMinOp::store() {
 
 void
 nstThTstOp::init() {
-    if(nst->initSel >= 3) {
-        nst->aluState = C_FP32_ZERO_VAL;
+    if(ntx->initSel >= 3) {
+        ntx->aluState = C_FP32_ZERO_VAL;
     }
     else {
-        nst->aluState = *(uint32_t *)nst->agu[nst->initSel];
+        ntx->aluState = *(uint32_t *)ntx->agu[ntx->initSel];
     }
 
-#if NST_DEBUG_LEVEL > 1
-    printf("init alu with %f (0x%08X)\n",fp32ToFloat(nst->aluState), nst->aluState);
-    printf("op: NST_THTST (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+#if NTX_DEBUG_LEVEL > 1
+    printf("init alu with %f (0x%08X)\n",fp32ToFloat(ntx->aluState), ntx->aluState);
+    printf("op: NTX_THTST (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
@@ -640,28 +640,28 @@ nstThTstOp::init() {
 void
 nstThTstOp::execute() {
 
-    opB = (uint32_t *)nst->agu[1];
+    opB = (uint32_t *)ntx->agu[1];
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("fetching: opB = %f (0x%08X)\n",fp32ToFloat(*opB), *opB);
-    printf("op: NST_THTST (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_THTST (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
-    switch(nst->auxFunc & 0x3) {
-        case C_NST_THTST_AUX_CMP_EQ:
-            tst = (fp32ToFloat(nst->aluState) == fp32ToFloat(*opB));
+    switch(ntx->auxFunc & 0x3) {
+        case C_NTX_THTST_AUX_CMP_EQ:
+            tst = (fp32ToFloat(ntx->aluState) == fp32ToFloat(*opB));
             // invert if necessary
-            tst ^=  nst->polarity;
+            tst ^=  ntx->polarity;
             break;
-        case C_NST_MASK_AUX_CMP_LT:
-            tst = (fp32ToFloat(nst->aluState) > fp32ToFloat(*opB));
+        case C_NTX_MASK_AUX_CMP_LT:
+            tst = (fp32ToFloat(ntx->aluState) > fp32ToFloat(*opB));
             // invert if necessary
-            tst ^=  nst->polarity;
+            tst ^=  ntx->polarity;
             break;
-        case C_NST_THTST_AUX_CMP_LE:
-            tst = (fp32ToFloat(nst->aluState) >= fp32ToFloat(*opB));
+        case C_NTX_THTST_AUX_CMP_LE:
+            tst = (fp32ToFloat(ntx->aluState) >= fp32ToFloat(*opB));
             // invert if necessary
-            tst ^=  nst->polarity;
+            tst ^=  ntx->polarity;
             break;
         default:
             tst = 0;
@@ -671,20 +671,20 @@ nstThTstOp::execute() {
 
 void
 nstThTstOp::store() {
-    uint32_t * res = (uint32_t *)nst->agu[2];
+    uint32_t * res = (uint32_t *)ntx->agu[2];
 
     // binary output
-    if(nst->auxFunc & 0x4){
+    if(ntx->auxFunc & 0x4){
         *res = tst ? C_FP32_ONE_VAL : C_FP32_ZERO_VAL;
     }
     // thresholding output
     else {
-        *res = tst ? *opB : nst->aluState;
+        *res = tst ? *opB : ntx->aluState;
     }
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("storing: res = %f (0x%08X)\n",fp32ToFloat(*res), *res);
-    printf("op: NST_THTST (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_THTST (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
@@ -695,18 +695,18 @@ nstThTstOp::store() {
 
 void
 nstMaskOp::init() {
-    if(nst->initSel >= 3) {
-        nst->aluState = C_FP32_ZERO_VAL;
+    if(ntx->initSel >= 3) {
+        ntx->aluState = C_FP32_ZERO_VAL;
     }
     else {
-        nst->aluState = *(uint32_t *)nst->agu[nst->initSel];
+        ntx->aluState = *(uint32_t *)ntx->agu[ntx->initSel];
     }
 
-    nst->cntState = 0;
+    ntx->cntState = 0;
 
-#if NST_DEBUG_LEVEL > 1
-    printf("init alu with %f (0x%08X)\n",fp32ToFloat(nst->aluState), nst->aluState);
-    printf("op: NST_MASK (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+#if NTX_DEBUG_LEVEL > 1
+    printf("init alu with %f (0x%08X)\n",fp32ToFloat(ntx->aluState), ntx->aluState);
+    printf("op: NTX_MASK (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
@@ -714,58 +714,58 @@ nstMaskOp::init() {
 void
 nstMaskOp::execute() {
 
-    opA = (uint32_t *)nst->agu[0];
-    uint32_t * opB = (uint32_t *)nst->agu[1];
+    opA = (uint32_t *)ntx->agu[0];
+    uint32_t * opB = (uint32_t *)ntx->agu[1];
 
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("fetching: opB = %f (0x%08X)\n",fp32ToFloat(*opB), *opB);
-    printf("op: NST_MASK (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_MASK (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 
-    switch(nst->auxFunc) {
-        case C_NST_THTST_AUX_CMP_EQ:
-            tst = (fp32ToFloat(nst->aluState) == fp32ToFloat(*opB));
+    switch(ntx->auxFunc) {
+        case C_NTX_THTST_AUX_CMP_EQ:
+            tst = (fp32ToFloat(ntx->aluState) == fp32ToFloat(*opB));
             // invert if necessary
-            tst ^=  nst->polarity;
+            tst ^=  ntx->polarity;
             break;
-        case C_NST_MASK_AUX_CMP_LT:
-            tst = (fp32ToFloat(nst->aluState) > fp32ToFloat(*opB));
+        case C_NTX_MASK_AUX_CMP_LT:
+            tst = (fp32ToFloat(ntx->aluState) > fp32ToFloat(*opB));
             // invert if necessary
-            tst ^=  nst->polarity;
+            tst ^=  ntx->polarity;
             break;
-        case C_NST_THTST_AUX_CMP_LE:
-            tst = (fp32ToFloat(nst->aluState) >= fp32ToFloat(*opB));
+        case C_NTX_THTST_AUX_CMP_LE:
+            tst = (fp32ToFloat(ntx->aluState) >= fp32ToFloat(*opB));
             // invert if necessary
-            tst ^=  nst->polarity;
+            tst ^=  ntx->polarity;
             break;
-        case C_NST_THTST_AUX_BIN_OUT:
+        case C_NTX_THTST_AUX_BIN_OUT:
             // compare with counter
-            tst = nst->cntState == nst->aluState;
+            tst = ntx->cntState == ntx->aluState;
             // invert if necessary
-            tst ^=  nst->polarity;
+            tst ^=  ntx->polarity;
             break;
         default:
             tst = 0;
             break;
     }
 
-    nst->cntState++;
+    ntx->cntState++;
 }
 
 void
 nstMaskOp::store() {
-    uint32_t * res = (uint32_t *)nst->agu[2];
+    uint32_t * res = (uint32_t *)ntx->agu[2];
 
 
     // mask output
     *res = tst ? *opA : C_FP32_ZERO_VAL;
 
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("storing: res = %f (0x%08X)\n",fp32ToFloat(*res), *res);
-    printf("op: NST_MASK (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_MASK (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
@@ -779,28 +779,28 @@ void
 nstMaskMacOp::init() {
 
     // load two values
-    if(nst->initSel >= 3) {
-        nst->aluState = C_FP32_ZERO_VAL;
+    if(ntx->initSel >= 3) {
+        ntx->aluState = C_FP32_ZERO_VAL;
     }
     else {
-        nst->aluState = *(uint32_t *)nst->agu[1];
+        ntx->aluState = *(uint32_t *)ntx->agu[1];
     }
 
-    uint32_t * res = (uint32_t *)nst->agu[0];
+    uint32_t * res = (uint32_t *)ntx->agu[0];
     pcsMac ((*res),
             C_FP32_ONE_VAL,
             1,
             0,
             0,
-            nst->accuState,
+            ntx->accuState,
             (*res));
 
-    nst->cntState = 0;
+    ntx->cntState = 0;
 
-#if NST_DEBUG_LEVEL > 1
-    printf("init alu with %f (0x%08X)\n",fp32ToFloat(nst->aluState), nst->aluState);
+#if NTX_DEBUG_LEVEL > 1
+    printf("init alu with %f (0x%08X)\n",fp32ToFloat(ntx->aluState), ntx->aluState);
     printf("init accu with %f (0x%08X)\n",fp32ToFloat(*res), *res);
-    printf("op: NST_MASKMAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_MASKMAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
@@ -809,57 +809,57 @@ void
 nstMaskMacOp::execute() {
 
     // load read-modify-write vector (result)
-    opA = (uint32_t *)nst->agu[2];
+    opA = (uint32_t *)ntx->agu[2];
 
     uint32_t * opB = opA;
-    if(!(nst->auxFunc & 0x4)) {
+    if(!(ntx->auxFunc & 0x4)) {
 
-        opB = (uint32_t *)nst->agu[1];
+        opB = (uint32_t *)ntx->agu[1];
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
         printf("fetching: opB = %f (0x%08X)\n",fp32ToFloat(*opB), *opB);
 #endif
     }
 
-    switch(nst->auxFunc) {
-        case C_NST_THTST_AUX_CMP_EQ:
-            tst = (fp32ToFloat(nst->aluState) == fp32ToFloat(*opB));
+    switch(ntx->auxFunc) {
+        case C_NTX_THTST_AUX_CMP_EQ:
+            tst = (fp32ToFloat(ntx->aluState) == fp32ToFloat(*opB));
             // invert if necessary
-            tst ^=  nst->polarity;
+            tst ^=  ntx->polarity;
             break;
-        case C_NST_MASK_AUX_CMP_LT:
-            tst = (fp32ToFloat(nst->aluState) > fp32ToFloat(*opB));
+        case C_NTX_MASK_AUX_CMP_LT:
+            tst = (fp32ToFloat(ntx->aluState) > fp32ToFloat(*opB));
             // invert if necessary
-            tst ^=  nst->polarity;
+            tst ^=  ntx->polarity;
             break;
-        case C_NST_THTST_AUX_CMP_LE:
-            tst = (fp32ToFloat(nst->aluState) >= fp32ToFloat(*opB));
+        case C_NTX_THTST_AUX_CMP_LE:
+            tst = (fp32ToFloat(ntx->aluState) >= fp32ToFloat(*opB));
             // invert if necessary
-            tst ^=  nst->polarity;
+            tst ^=  ntx->polarity;
             break;
-        case C_NST_THTST_AUX_BIN_OUT:
+        case C_NTX_THTST_AUX_BIN_OUT:
             // compare with counter
-            tst = nst->cntState == nst->aluState;
+            tst = ntx->cntState == ntx->aluState;
             // invert if necessary
-            tst ^=  nst->polarity;
+            tst ^=  ntx->polarity;
             break;
         default:
             tst = 0;
             break;
     }
 
-    nst->cntState++;
+    ntx->cntState++;
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("fetching: opA = %f (0x%08X)\n",fp32ToFloat(*opA), *opA);
-    printf("op: NST_MASKMAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_MASKMAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
 
 void
 nstMaskMacOp::store() {
-    uint32_t * res = (uint32_t *)nst->agu[2];
+    uint32_t * res = (uint32_t *)ntx->agu[2];
 
 
     // conditionally accumulate and WB
@@ -870,19 +870,19 @@ nstMaskMacOp::store() {
                 0,
                 0,
                 1,
-                nst->accuState,
+                ntx->accuState,
                 (*res));
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("storing: res = %f (0x%08X)\n",fp32ToFloat(*res), *res);
-    printf("op: NST_MASKMAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_MASKMAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
     }
     else {
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("not storing since comparison returned false\n");
-    printf("op: NST_MASKMAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_MASKMAC (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
     }
 
@@ -896,18 +896,18 @@ nstMaskMacOp::store() {
 void
 nstCopyOp::init() {
 
-    if(!(nst->auxFunc & 0x1)) {
-        if(nst->initSel >= 3) {
-            nst->aluState = C_FP32_ZERO_VAL;
+    if(!(ntx->auxFunc & 0x1)) {
+        if(ntx->initSel >= 3) {
+            ntx->aluState = C_FP32_ZERO_VAL;
         }
         else {
-            nst->aluState = *(uint32_t *)nst->agu[nst->initSel];
+            ntx->aluState = *(uint32_t *)ntx->agu[ntx->initSel];
         }
     }
 
-#if NST_DEBUG_LEVEL > 1
-    printf("init alu with %f (0x%08X)\n",fp32ToFloat(nst->aluState), nst->aluState);
-    printf("op: NST_COPY");
+#if NTX_DEBUG_LEVEL > 1
+    printf("init alu with %f (0x%08X)\n",fp32ToFloat(ntx->aluState), ntx->aluState);
+    printf("op: NTX_COPY");
 #endif
 
 }
@@ -915,30 +915,30 @@ nstCopyOp::init() {
 void
 nstCopyOp::execute() {
 
-    if(nst->auxFunc & 0x1) {
-        nst->aluState = *(uint32_t *)nst->agu[0];
+    if(ntx->auxFunc & 0x1) {
+        ntx->aluState = *(uint32_t *)ntx->agu[0];
 
-#if NST_DEBUG_LEVEL > 1
-        printf("fetching: aluState = %f (0x%08X)\n",fp32ToFloat(nst->aluState), nst->aluState);
+#if NTX_DEBUG_LEVEL > 1
+        printf("fetching: aluState = %f (0x%08X)\n",fp32ToFloat(ntx->aluState), ntx->aluState);
 #endif
 
     }
 
-#if NST_DEBUG_LEVEL > 1
-    printf("op: NST_COPY (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+#if NTX_DEBUG_LEVEL > 1
+    printf("op: NTX_COPY (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
 
 void
 nstCopyOp::store() {
-    uint32_t * res = (uint32_t *)nst->agu[2];
+    uint32_t * res = (uint32_t *)ntx->agu[2];
 
-    *res = nst->aluState;
+    *res = ntx->aluState;
 
-#if NST_DEBUG_LEVEL > 1
+#if NTX_DEBUG_LEVEL > 1
     printf("storing: res = %f (0x%08X)\n",fp32ToFloat(*res), *res);
-    printf("op: NST_COPY (init: 0x%X, polarity: %u, auxFunc: %X)\n", nst->initSel, nst->polarity, nst->auxFunc);
+    printf("op: NTX_COPY (init: 0x%X, polarity: %u, auxFunc: %X)\n", ntx->initSel, ntx->polarity, ntx->auxFunc);
 #endif
 
 }
